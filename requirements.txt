@@ -1,0 +1,2 @@
+pymupdf
+python-telegram-bot>=21
