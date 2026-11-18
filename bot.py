@@ -209,12 +209,25 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if not ALLOWED and not ALLOW_ANYONE:
         logging.warning("ALLOWED_USER_IDS is empty: nobody can use the bot yet. Send /myid to it to get an ID.")
-    app = ApplicationBuilder().token(token).build()
+    
+    # --- UPDATED TIMEOUTS & RETRIES FOR STABLE CLOUD HOSTING ---
+    app = (
+        ApplicationBuilder()
+        .token(token)
+        .connect_timeout(30.0)
+        .read_timeout(30.0)
+        .write_timeout(30.0)
+        .pool_timeout(30.0)
+        .build()
+    )
+    
     app.add_handler(CommandHandler(["start", "help"], cmd_help))
     app.add_handler(CommandHandler("myid", cmd_myid))
     app.add_handler(MessageHandler(filters.Document.ALL, on_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
-    app.run_polling()
+    
+    # --- ADDED BOOTSTRAP RETRIES TO PREVENT TIMEDOUT CRASHES ---
+    app.run_polling(bootstrap_retries=-1, drop_pending_updates=True)
 
 
 if __name__ == "__main__":
